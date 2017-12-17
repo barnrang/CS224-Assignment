@@ -53,6 +53,7 @@ def forward_backward_prop(data, labels, params, dimensions):
     dh1 = sigmoid_grad(H1) * dh1
     gradb1 = np.sum(dh1, axis=0)
     gradW1 = data.T.dot(dh1)
+    print gradW1
     ### END YOUR CODE
 
     ### Stack gradients (do not modify)

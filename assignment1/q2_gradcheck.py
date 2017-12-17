@@ -34,6 +34,7 @@ def gradcheck_naive(f, x):
         x[ix] += h
         fout1, _ = f(x)
         x[ix] -= 2*h
+        random.setstate(rndstate)
         fout2, _ = f(x)
         numgrad = np.sum(fout1 - fout2)/(2*h)
         x[ix] += h
