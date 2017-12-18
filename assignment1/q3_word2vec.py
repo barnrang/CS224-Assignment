@@ -59,14 +59,11 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     """
 
     ### YOUR CODE HERE
-    sim = outputVectors.dot(predicted)
-    out = softmax(sim)
-    cost = - np.log(out[target])
-    p = out.copy()
+    p = softmax(outputVectors.dot(predicted))
+    cost = - np.log(p[target])
     p[target] -= 1.0
     gradPred = p.dot(outputVectors)
-    p = p.reshape(-1,1)
-    grad = p.dot(predicted.reshape(1,-1))
+    grad = np.outer(p,predicted)#p.reshape(-1,1).dot(predicted.reshape(1,-1))
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -105,18 +102,14 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
 
     ### YOUR CODE HERE
     use_vecs = outputVectors[indices]
-    sim = use_vecs.dot(predicted)
-    out = sigmoid(sim)
+    out = sigmoid(use_vecs.dot(predicted))
     pos_sig = out[0]
     neg_sig = 1 - out[1:]
     cost = -np.log(pos_sig) - np.sum(np.log(neg_sig))
     gradPred = (pos_sig - 1) * use_vecs[0] - np.sum((neg_sig - 1) * use_vecs[1:].T,axis=1)
     grad = np.zeros_like(outputVectors)
     grad[target] += predicted * (pos_sig - 1)
-    for i in range(K):
-        index = indices[i+1]
-        grad[index] += (1 - neg_sig[i]) * predicted
-
+    grad[indices[1:]] += (np.bincount(indices[1:])[indices[1:]] * np.outer(predicted, 1 - neg_sig)).T
 
     return cost, gradPred, grad
 
@@ -181,7 +174,12 @@ def cbow(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradOut = np.zeros(outputVectors.shape)
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    target = tokens[currentWord]
+    indices = [tokens[x] for x in contextWords]
+    repeat = np.bincount(indices)[indices]
+    v_in  = np.sum(inputVectors[indices],0)
+    cost, _gradIn, gradOut = word2vecCostAndGradient(v_in, target, outputVectors, dataset)
+    gradIn[indices] += np.outer(repeat, _gradIn)
     ### END YOUR CODE
 
     return cost, gradIn, gradOut
