@@ -31,7 +31,6 @@ class Model(object):
 
         Hint: The keys for the feed_dict should be a subset of the placeholder
                     tensors created in add_placeholders.
-
         Args:
             inputs_batch: A batch of input data.
             labels_batch: A batch of label data.
