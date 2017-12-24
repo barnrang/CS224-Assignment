@@ -58,7 +58,7 @@ def cross_entropy_loss(y, yhat):
     """
 
     ### YOUR CODE HERE
-    y_prob = y * yhat
+    y_prob = yhat * tf.cast(y, tf.float32)
     y_prob = tf.reduce_sum(y_prob, axis=1)
     out = - tf.reduce_sum(tf.log(y_prob))
     ### END YOUR CODE

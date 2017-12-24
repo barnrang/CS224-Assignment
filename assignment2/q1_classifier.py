@@ -45,8 +45,8 @@ class SoftmaxModel(Model):
             self.labels_placeholder
         """
         ### YOUR CODE HERE
-        self.input_placeholder = tf.placeholder(tf.float32, [batch_size, n_features])
-        self.labels_placeholder = tf.placeholder(tf.float32, [batch_size, n_classes])
+        self.input_placeholder = tf.placeholder(tf.float32, [self.config.batch_size, self.config.n_features])
+        self.labels_placeholder = tf.placeholder(tf.float32, [self.config.batch_size, self.config.n_classes])
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, labels_batch=None):
@@ -71,8 +71,8 @@ class SoftmaxModel(Model):
         """
         ### YOUR CODE HERE
         feed_dict = {
-            self.input_batch: input_batch
-            self.label_batch: label_batch
+            self.input_placeholder: inputs_batch,
+            self.labels_placeholder: labels_batch
         }
         ### END YOUR CODE
         return feed_dict
@@ -95,9 +95,9 @@ class SoftmaxModel(Model):
         """
         ### YOUR CODE HERE
         with tf.name_scope('linear'):
-            W = tf.Variable(tf.zeros([n_features, n_classes]))
-            b = tf.Variable(tf.zero([n_classes]))
-            out = tf.matmul(x, W) + b
+            W = tf.Variable(tf.zeros([self.config.n_features, self.config.n_classes]))
+            b = tf.Variable(tf.zeros([self.config.n_classes]))
+            pred = softmax(tf.matmul(self.input_placeholder, W) + b)
         ### END YOUR CODE
         return pred
 
@@ -112,7 +112,7 @@ class SoftmaxModel(Model):
             loss: A 0-d tensor (scalar)
         """
         ### YOUR CODE HERE
-        loss = tf.losses.cross_entropy_loss(self.input_labels, pred)
+        loss = cross_entropy_loss(self.labels_placeholder, pred)
         ### END YOUR CODE
         return loss
 

@@ -54,8 +54,8 @@ class ParserModel(Model):
         (Don't change the variable names)
         """
         # YOUR CODE HERE
-        self.input_placeholder = tf.placeholder(tf.int32, [None, n_features])
-        self.labels_placeholder = tf.placeholder(tf.float32, [None, n_classes])
+        self.input_placeholder = tf.placeholder(tf.int32, [None, self.config.n_features])
+        self.labels_placeholder = tf.placeholder(tf.float32, [None, self.config.n_classes])
         self.dropout_placeholder = tf.placeholder(tf.float32)
         # END YOUR CODE
 
