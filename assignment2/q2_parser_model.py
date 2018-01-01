@@ -82,7 +82,7 @@ class ParserModel(Model):
             feed_dict: The feed dictionary mapping from placeholders to values.
         """
         # YOUR CODE HERE
-        feed_dict = {self.input_placeholder: input_batch,
+        feed_dict = {self.input_placeholder: inputs_batch,
                      self.dropout_placeholder: dropout}
         if labels_batch is not None:
             feed_dict[self.labels_placeholder] = labels_batch
@@ -107,6 +107,10 @@ class ParserModel(Model):
             embeddings: tf.Tensor of shape (None, n_features*embed_size)
         """
         # YOUR CODE HERE
+        with tf.variable_scope('embed'):
+            embed = tf.Variable(self.pretrained_embeddings)
+            embeddings = tf.nn.embedding_lookup(embed,self.input_placeholder)
+            embeddings = tf.reshape(embeddings,[-1,self.config.embed_size * self.config.n_features])
         # END YOUR CODE
         return embeddings
 
@@ -137,6 +141,15 @@ class ParserModel(Model):
 
         x = self.add_embedding()
         # YOUR CODE HERE
+        xavier_initializer = xavier_weight_init()
+        with tf.variable_scope('net'):
+            W = xavier_initializer(shape=[self.config.n_features*self.config.embed_size,self.config.hidden_size])
+            U = xavier_initializer(shape=[self.config.hidden_size,self.config.n_classes])
+            b1 = tf.Variable(tf.random_uniform([self.config.hidden_size,]))
+            b2 = tf.Variable(tf.random_uniform([self.config.n_classes]))
+            h = tf.nn.relu(tf.matmul(x,W) + b1)
+            h_drop = tf.nn.dropout(h, self.dropout_placeholder)
+            pred = tf.matmul(h_drop, U) + b2
         # END YOUR CODE
         return pred
 
@@ -155,7 +168,7 @@ class ParserModel(Model):
         """
         # YOUR CODE HERE
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-            self.labels_placeholder, logit=pred))
+            labels=self.labels_placeholder, logits=pred))
         # END YOUR CODE
         return loss
 
@@ -179,7 +192,7 @@ class ParserModel(Model):
             train_op: The Op for training.
         """
         # YOUR CODE HERE
-        optimizer = tf.train.AdamOptimizer()
+        optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
         train_op = optimizer.minimize(loss)
         # END YOUR CODE
         return train_op
