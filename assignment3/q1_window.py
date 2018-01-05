@@ -37,7 +37,7 @@ class Config:
     n_word_features = 2 # Number of features for every word in the input.
     window_size = 1 # The size of the window to use.
     ### YOUR CODE HERE
-    n_window_features = 0 # The total number of features used for each window.
+    n_window_features = (2 * window_size + 1) * n_word_features # The total number of features used for each window.
     ### END YOUR CODE
     n_classes = 5
     dropout = 0.5
@@ -101,8 +101,7 @@ def make_windowed_data(data, start, end, window_size = 1):
         sen_len = len(sentence)
         flatten = [x for y in sentence for x in y]
         flatten = start + flatten + end
-        entry = [(flatten[max(2+2*i-2*w,0):4+2*i+2*w],labels[i])\
-            for i in range(sen_len)]
+        entry = [(flatten[max(2+2*i-2*w,0):4+2*i+2*w],labels[i]) for i in range(sen_len)]
         windowed_data.extend(entry)
     ### END YOUR CODE
     return windowed_data
@@ -187,9 +186,10 @@ class WindowModel(NERModel):
             embeddings: tf.Tensor of shape (None, n_window_features*embed_size)
         """
         ### YOUR CODE HERE (!3-5 lines)
-        embed = tf.nn.embedding(self.input_placeholder, self.pretrained_embeddings)
-        embedding = tf.reshape(embed,
-            [-1,self.config.n_window_features * self.config.embedding_size])
+        trained_embed = tf.Variable(self.pretrained_embeddings)
+        embed = tf.nn.embedding_lookup(trained_embed,self.input_placeholder)
+        embeddings = tf.reshape(embed,
+            [-1,self.config.n_window_features * self.config.embed_size])
         ### END YOUR CODE
         return embeddings
 
@@ -221,8 +221,10 @@ class WindowModel(NERModel):
         dropout_rate = self.dropout_placeholder
         ### YOUR CODE HERE (~10-20 lines)
         xavier = tf.contrib.layers.xavier_initializer
-        W = xavier([self.config.n_window_features * self.config.embedding_size, self.config.hidden_size])
-        U = xavier([self.config.hidden_size, self.config.n_classes])
+        W = tf.get_variable(name='W',shape=[self.config.n_window_features * self.config.embed_size, self.config.hidden_size]\
+            ,initializer=xavier())
+        U = tf.get_variable(name='U',shape=[self.config.hidden_size, self.config.n_classes]\
+            ,initializer=xavier())
         b1 = tf.Variable(tf.zeros([self.config.hidden_size,]))
         b2 = tf.Variable(tf.zeros([self.config.n_classes,]))
         h = tf.nn.relu(tf.matmul(x,W) + b1)
