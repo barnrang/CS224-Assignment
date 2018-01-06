@@ -65,7 +65,20 @@ class GRUCell(tf.nn.rnn_cell.RNNCell):
         # be defined elsewhere!
         with tf.variable_scope(scope):
             ### YOUR CODE HERE (~20-30 lines)
-            pass
+            xavier = tf.contrib.layers.xavier_initializer
+            all_var = [['W_r', 'W_z', 'W_o'], ['U_r', 'U_z', 'U_o'], ['b_r', 'b_z', 'b_o']]
+            [W_r, W_z, W_o], [U_r, U_z, U_o], [b_r, b_z, b_o] = [\
+                [tf.get_variable(name=x,shape=[self._state_size]*2,initializer=xavier())\
+                for x in all_var[0]],\
+                [tf.get_variable(name=x,shape=[self.input_size,self._state_size],initializer=xavier())\
+                for x in all_var[1]],\
+                [tf.get_variable(name=x,shape=[self._state_size,],initializer=xavier())\
+                for x in all_var[2]]
+            ]
+            z = tf.sigmoid(tf.matmul(inputs,U_z) + tf.matmul(state,W_z) + b_z)
+            r = tf.sigmoid(tf.matmul(inputs,U_r) + tf.matmul(state,W_r) + b_r)
+            o = tf.tanh(tf.matmul(inputs,U_o) + tf.matmul(r * state,W_o) + b_o)
+            new_state = z * state + (1 - z) * o
             ### END YOUR CODE ###
         # For a GRU, the output and state are the same (N.B. this isn't true
         # for an LSTM, though we aren't using one of those in our
